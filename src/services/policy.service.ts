@@ -1,16 +1,16 @@
 /**
  * policy.service.ts
  *
- * Deterministic rules engine for expenses_policy.md. Pure function: same
- * inputs always produce the same outputs. No I/O, no LLM, no data files.
+ * Motor de regras para expenses_policy.md. Função pura: as mesmas
+ * entradas produzem sempre as mesmas saídas. Sem I/O, sem LLM, sem ficheiros de dados.
  *
- * Rules (from expenses_policy.md):
- *   - < 100 EUR              -> line manager approval.
- *   - 100 to 500 EUR         -> line manager approval + register in system.
- *   - > 500 EUR              -> line manager + Finance Manager approval + register in system.
- *   Any expense of 100 EUR or more is registered.
- *   - Category "IT equipment" (any value) -> Operations validation ALSO
- *     required, to avoid duplicate or incompatible purchases.
+ * Regras (de expenses_policy.md):
+ *   - < 100 EUR -> aprovação do line manager.
+ *   - 100 a 500 EUR -> aprovação do line manager + registo no sistema.
+ *   - > 500 EUR -> aprovação do line manager + aprovação da Finance Manager + registo no sistema.
+ *   Qualquer despesa de 100 EUR ou mais é registada.
+ *   - Categoria "Equipamento informático" (qualquer valor) -> validação de Operations também
+ *     é necessária, para evitar compras duplicadas ou incompatíveis.
  */
 
 import type {
@@ -33,7 +33,7 @@ export function evaluateExpense(input: PolicyInput): PolicyDecision {
     reasons: [],
   };
 
-  // --- Amount-based rules ---------------------------------------------------
+  // --- Regras baseadas no valor ---------------------------------------------
   if (value < 100) {
     decision.requiredApprovers.push("line_manager");
     decision.reasons.push(
@@ -53,7 +53,7 @@ export function evaluateExpense(input: PolicyInput): PolicyDecision {
     );
   }
 
-  // --- Category exception ---------------------------------------------------
+  // --- Exceção de categoria -------------------------------------------------
   if (category === "Equipamento informático") {
     decision.requiredValidators.push("operations");
     decision.reasons.push(

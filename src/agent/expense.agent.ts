@@ -1,16 +1,16 @@
 /**
  * expense.agent.ts
  *
- * Orchestrator for the "Controlo de Despesas" agent. Runs the 5-step workflow
- * described in the challenge brief:
+ * Orquestrador para o agente "Controlo de Despesas". Executa o fluxo de trabalho de 5 passos
+ * descrito no briefing do desafio:
  *
- *   1. Ingestion         -> handled by index.ts (readline)
- *   2. AI Reasoning      -> llm.service.extractExpense
- *   3. Enrichment (TS)   -> data.service.buildEmployeeContext
- *   4. Rules engine (TS) -> policy.service.evaluateExpense
- *   5. Output            -> AgentResult returned here, rendered by index.ts
+ *   1. Ingestão -> gerido por index.ts (readline)
+ *   2. Raciocínio de IA -> llm.service.extractExpense
+ *   3. Enriquecimento (TS) -> data.service.buildEmployeeContext
+ *   4. Motor de regras (TS) -> policy.service.evaluateExpense
+ *   5. Saída -> AgentResult retornado aqui, renderizado por index.ts
  *
- * The AI is used ONLY in step 2. Steps 3-5 are deterministic TypeScript.
+ * A IA é utilizada APENAS no passo 2. Os passos 3-5 são TypeScript determinístico.
  */
 
 import { extractExpense, type ExtractOptions } from "../services/llm.service.js";
@@ -35,8 +35,8 @@ export interface ValidatorAssignment {
 }
 
 /**
- * The successful path: extraction, employee context, policy decision, and the
- * resolved people + simulated tasks that a downstream system would create.
+ * Em caso de sucesso: extração, contexto do colaborador, decisão da política e as
+ * pessoas resolvidas + tarefas simuladas que um sistema posterior criaria.
  */
 export interface AgentSuccess {
   ok: true;
@@ -49,8 +49,8 @@ export interface AgentSuccess {
 }
 
 /**
- * Failure path: something needs human clarification. We DO NOT invent an
- * approver in this case; the caller renders the reason for the user.
+ * Em caso de falha: algo precisa de clarificação humana. Não se inventa um
+ * aprovador neste caso; o chamador renderiza o motivo para o utilizador.
  */
 export interface AgentFailure {
   ok: false;
@@ -63,17 +63,19 @@ export type AgentResult = AgentSuccess | AgentFailure;
 export interface RunOptions extends ExtractOptions {}
 
 /**
- * Process a single natural-language message end-to-end.
+ * Processa uma única mensagem em linguagem natural.
  */
 export async function processExpenseMessage(
   message: string,
   options: RunOptions = {},
 ): Promise<AgentResult> {
-  // Step 2 - AI Reasoning
+  // Passo 2 - Raciocínio de IA
   let extraction: ExpenseExtraction;
+  
   try {
     extraction = await extractExpense(message, options);
-  } catch (error) {
+  } 
+  catch (error) {
     const detail = error instanceof Error ? error.message : String(error);
     return {
       ok: false,
@@ -101,7 +103,7 @@ export async function processExpenseMessage(
     };
   }
 
-  // Step 3 - Enrichment (traditional logic)
+  // Passo 3 - Enriquecimento (lógica tradicional)
   const context = await buildEmployeeContext(extraction.employee_name);
   if (!context) {
     return {
@@ -123,18 +125,20 @@ export async function processExpenseMessage(
     };
   }
 
-  // Step 4 - Rules engine (traditional logic)
+  // Passo 4 - Motor de regras (lógica tradicional)
   const decision = evaluateExpense({
     value: extraction.value,
     category: extraction.category,
   });
 
-  // Resolve role tokens -> concrete people using the enriched context.
+  // Resolve os tokens de papéis
   const approvers: ApproverAssignment[] = [];
+
   for (const role of decision.requiredApprovers) {
     if (role === "line_manager") {
       approvers.push({ role, employee: context.manager });
-    } else if (role === "finance_manager") {
+    } 
+    else if (role === "finance_manager") {
       if (!context.finance_manager) {
         return {
           ok: false,
@@ -148,6 +152,7 @@ export async function processExpenseMessage(
   }
 
   const validators: ValidatorAssignment[] = [];
+
   for (const role of decision.requiredValidators) {
     if (role === "operations") {
       if (!context.operations_contact) {
@@ -162,7 +167,7 @@ export async function processExpenseMessage(
     }
   }
 
-  // Step 5 - Build simulated tasks (same shape as tasks.json entries).
+  // Passo 5 - Constrói tarefas simuladas (mesmo formato das entradas do tasks.json).
   const tasks = buildSimulatedTasks(extraction, approvers, validators);
 
   return {
@@ -176,9 +181,9 @@ export async function processExpenseMessage(
   };
 }
 
-/**
- * Create the ticket list that a downstream ticketing system (see tasks.json)
- * would open. Tasks are only printed - we never write to tasks.json.
+  /**
+ * Cria a lista de tickets que um sistema de ticketing posterior (ver tasks.json)
+ * iria abrir. As tarefas são apenas impressas - nunca escritas no tasks.json.
  */
 function buildSimulatedTasks(
   extraction: ExpenseExtraction,

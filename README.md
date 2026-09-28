@@ -73,7 +73,9 @@ O agente pára e não inventa um aprovador quando:
 
 ## Como experimentar
 
-Requer Node.js 18+, `GEMINI_API_KEY` e `GEMINI_MODEL` (configurar modelo) no `.env`. 
+Requer Node.js 18+, `GEMINI_API_KEY` e `GEMINI_MODEL` (configurar modelo, por exemplo ***gemini-3.5-flash-lite***
+
+) no `.env`. 
 
 ```bash
 npm install

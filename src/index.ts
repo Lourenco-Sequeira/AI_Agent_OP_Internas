@@ -1,13 +1,12 @@
 /**
  * index.ts
  *
- * CLI entry point for the "Controlo de Despesas" agent.
+ * CLI entry point para o agente de "Controlo de Despesas".
  *
- * Uses Node's native `readline` to loop on user input, delegates all logic to
- * expense.agent.ts, and prints a user-friendly Portuguese summary of the
- * resulting approval flow.
+ * Usa o `readline` nativo do Node para ler a entrada do utilizador, delega todas as lógicas para
+ * expense.agent.ts e imprime um resumo português amigável do fluxo de aprovação resultante.
  *
- * Type `sair` (or press Ctrl+C) to exit.
+ * Escreva `sair` (ou pressione Ctrl+C) para sair.
  */
 
 import "dotenv/config";
@@ -21,14 +20,13 @@ async function main(): Promise<void> {
 
   const rl = createInterface({ input, output });
 
-  // Loop: read one line = one expense claim. Empty line or "sair" exits.
-  // eslint-disable-next-line no-constant-condition
+  // Loop: ler uma linha = um pedido de despesa. Linha vazia ou "sair" sai.
   while (true) {
     let line: string;
     try {
       line = (await rl.question("\n> Mensagem (ou 'sair'): ")).trim();
     } catch {
-      // readline closed (Ctrl+C, EOF, etc.)
+      // readline closed (Ctrl+C, etc.)
       break;
     }
 

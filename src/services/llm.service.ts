@@ -1,16 +1,13 @@
 /**
  * llm.service.ts
  *
- * The ONLY place the AI is used. Responsibility is strictly:
- *   natural-language message -> structured JSON extraction.
+ * Único lugar onde a IA é usada. A responsabilidade é estritamente: mensagem em linguagem natural -> extração estruturada em JSON.
  *
- * Everything else (employee lookup, policy rules, task creation) is plain
- * TypeScript. Constraining the LLM to a single narrow task is what keeps the
- * agent auditable and cheap.
+ * Tudo o resto (pesquisa de colaboradores, regras de política, criação de tarefas) é
+ * TypeScript puro. Restringir o LLM a uma única tarefa específica é o que mantém o
+ * agente auditável e barato.
  *
- * The model is Gemini (accepts a generic API key via .env: GEMINI_API_KEY),
- * with an optional local fallback when no key is configured so the prototype
- * can still be demoed without incurring API cost.
+ * O modelo é o Gemini (aceita uma chave de API genérica via .env: GEMINI_API_KEY),
  */
 
 import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
@@ -21,8 +18,8 @@ import {
 } from "../types/expense.js";
 
 /**
- * Zod contract for the extraction payload. Applied AFTER the model reply so a
- * malformed or hallucinated JSON never reaches the rules engine.
+ * Contrato Zod para o payload de extração. Aplicado após a resposta do modelo para que um
+ * JSON malformado ou alucinado nunca chegue ao motor de regras.
  */
 const ESQUEMA_EXTRACAO = z
   .object({
@@ -51,10 +48,10 @@ const ESQUEMA_EXTRACAO = z
   });
 
 /**
- * System prompt: the model is told, in plain terms, that its only job is
- * extraction and that policy decisions are made downstream in code. It also
- * gets a closed enum for `category`, an `is_expense` flag, and worked
- * examples for an expense (M01) and a non-expense (M02).
+ * Prompt de sistema: é dito ao modelo, em termos simples, que o seu único trabalho é
+ * a extração e que as decisões de política são tomadas posteriormente no código. Também
+ * recebe um enum fechado para `category`, uma flag `is_expense` e exemplos
+ * práticos para uma despesa (M01) e uma não-despesa (M02).
  */
 const PROMPT = `You are the extraction component of an internal expense-control agent.
 
@@ -110,8 +107,8 @@ Output:
 }`;
 
 /**
- * Gemini responseSchema. Combined with responseMimeType "application/json"
- * this forces the model to output exactly the shape we want.
+ * responseSchema do Gemini. Combinado com responseMimeType "application/json"
+ * isto força o modelo a produzir exatamente o formato que queremos.
  */
 const ESQUEMA_RESPOSTA = {
   type: SchemaType.OBJECT,
@@ -129,17 +126,16 @@ const ESQUEMA_RESPOSTA = {
 } as const;
 
 export interface ExtractOptions {
-  /** Override the API key normally read from GEMINI_API_KEY. */
+  /** Substitui a chave de API lida normalmente de GEMINI_API_KEY. */
   apiKey?: string;
-  /** Override the model normally read from GEMINI_MODEL. */
+  /** Substitui o modelo lido normalmente de GEMINI_MODEL. */
   model?: string;
 }
 
 /**
- * Extract structured expense data from a natural-language message.
+ * Extrai dados estruturados de despesas de uma mensagem em linguagem natural.
  *
- * Uses Gemini when GEMINI_API_KEY is configured; otherwise falls back to a
- * lightweight local extractor so the demo runs offline.
+ * Usa o Gemini quando GEMINI_API_KEY está configurada
  */
 export async function extractExpense(
   message: string,
@@ -181,7 +177,7 @@ async function callGemini(
   try {
     return await attempt();
   } catch (firstError) {
-    // One retry on invalid JSON / schema mismatch, then fail cleanly.
+    // Uma tentativa em caso de JSON inválido / incompatibilidade de esquema, depois falha de forma limpa.
     try {
       return await attempt();
     } catch (secondError) {
